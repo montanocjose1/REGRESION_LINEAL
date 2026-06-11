@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Plataforma de Regresión Logística
 
 Aplicación web educativa para cargar un dataset, entrenar un modelo de **regresión logística binaria**, validarlo y usarlo para predecir.
@@ -67,3 +68,6 @@ Ejemplo de URL final: `https://regresion-logistica.onrender.com`
 5. Selecciona la columna objetivo `aprobo`
 6. Pulsa **Entrenar modelo**
 7. Ve a **Fase 4** para validar y predecir
+=======
+# REGRESION_LINEAL
+>>>>>>> c7fe7e5c4a200d07a27d2fae24598aadb7784b83

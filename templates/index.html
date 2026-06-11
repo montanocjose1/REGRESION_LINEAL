@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plataforma de Regresión Logística</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">RL</div>
+        <div>
+          <h1>Regresión Logística</h1>
+          <p>Plataforma educativa</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-btn active" data-phase="1">1. Presentación</button>
+        <button class="nav-btn" data-phase="2">2. Fundamentos</button>
+        <button class="nav-btn" data-phase="3">3. Entrenamiento</button>
+        <button class="nav-btn" data-phase="4">4. Validación y predicción</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p class="flow-title">Flujo recomendado</p>
+        <ol>
+          <li>Lee qué entrega el proyecto</li>
+          <li>Entiende el modelo</li>
+          <li>Sube datos y entrena</li>
+          <li>Valida y predice</li>
+        </ol>
+        <div id="statusBadge" class="status-badge idle">Sin dataset</div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <!-- FASE 1 -->
+      <section id="phase-1" class="phase active">
+        <header class="phase-header">
+          <span class="phase-tag">Fase 1</span>
+          <h2>Presentación</h2>
+          <p>Qué entregamos y cuál es el objetivo del proyecto</p>
+        </header>
+
+        <div class="highlight-box">
+          <strong>Entregable:</strong> una página web que permite cargar un dataset,
+          entrenar un modelo de regresión logística, validarlo con métricas claras
+          y usarlo para predecir nuevos casos.
+        </div>
+
+        <div class="grid-2">
+          <article class="card">
+            <h3>Objetivo del ciclo completo</h3>
+            <ul class="check-list">
+              <li><strong>Carga de datos</strong> — subir CSV o Excel</li>
+              <li><strong>Entrenamiento</strong> — ajustar la regresión logística</li>
+              <li><strong>Validación</strong> — medir qué tan bien generaliza</li>
+              <li><strong>Predicción</strong> — clasificar nuevos registros</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Requisitos del dataset</h3>
+            <ul class="check-list">
+              <li>Formato CSV o Excel</li>
+              <li>Columna objetivo con <strong>2 clases</strong> (0/1, Sí/No)</li>
+              <li>Variables predictoras numéricas</li>
+              <li>Sin valores nulos</li>
+              <li>Mínimo recomendado: 10 filas</li>
+            </ul>
+            <a class="btn btn-secondary" href="/api/example">Descargar ejemplo CSV</a>
+          </article>
+        </div>
+      </section>
+
+      <!-- FASE 2 -->
+      <section id="phase-2" class="phase">
+        <header class="phase-header">
+          <span class="phase-tag">Fase 2</span>
+          <h2>Fundamentos del modelo</h2>
+          <p>Qué es la regresión logística y qué ocurre por detrás</p>
+        </header>
+
+        <div class="grid-2">
+          <article class="card">
+            <h3>¿Qué hace el modelo?</h3>
+            <p>
+              La regresión logística es un modelo de <strong>clasificación binaria</strong>.
+              En lugar de predecir un número continuo, estima la probabilidad de que
+              una observación pertenezca a la clase positiva (por ejemplo, aprobar = 1).
+            </p>
+
+            <div class="formula-box">
+              P(Y=1 | X) = 1 / (1 + e<sup>−(β₀ + β₁x₁ + β₂x₂ + …)</sup>)
+            </div>
+
+            <ul class="check-list">
+              <li><strong>β₀</strong> — intercepto del modelo</li>
+              <li><strong>βᵢ</strong> — peso de cada variable</li>
+              <li><strong>Sigmoide</strong> — convierte el score lineal en probabilidad (0 a 1)</li>
+              <li>Si P ≥ 0.5 → clase 1; si P &lt; 0.5 → clase 0</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Función sigmoide</h3>
+            <canvas id="sigmoidChart" height="220"></canvas>
+            <p class="muted">
+              Detrás del modelo, scikit-learn optimiza los coeficientes β para minimizar
+              la función de pérdida logística.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- FASE 3 -->
+      <section id="phase-3" class="phase">
+        <header class="phase-header">
+          <span class="phase-tag">Fase 3</span>
+          <h2>Entrenamiento del modelo</h2>
+          <p>Sube tu dataset, elige la variable objetivo y entrena</p>
+        </header>
+
+        <article class="card upload-card">
+          <label class="upload-zone" for="fileInput">
+            <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" hidden>
+            <div class="upload-icon">↑</div>
+            <p><strong>Haz clic o arrastra</strong> tu archivo CSV o Excel</p>
+            <span class="muted">Columna objetivo binaria + variables numéricas</span>
+          </label>
+          <div id="uploadInfo" class="upload-info hidden"></div>
+        </article>
+
+        <article id="trainPanel" class="card hidden">
+          <div class="grid-2 compact">
+            <div>
+              <label for="targetSelect">Columna objetivo</label>
+              <select id="targetSelect"></select>
+            </div>
+            <div>
+              <label for="testSize">Porcentaje para prueba (%)</label>
+              <input type="range" id="testSize" min="10" max="40" value="25">
+              <span id="testSizeLabel">25%</span>
+            </div>
+          </div>
+
+          <p id="featuresInfo" class="muted"></p>
+          <p id="validationMsg" class="message hidden"></p>
+
+          <div class="steps-box">
+            <strong>Qué ocurre al entrenar:</strong>
+            <ol>
+              <li>Se divide el dataset en entrenamiento y prueba</li>
+              <li>Las variables se estandarizan (media 0, desviación 1)</li>
+              <li>Se ajustan los coeficientes β mediante regresión logística</li>
+              <li>El modelo aprende la mejor frontera probabilística entre clases</li>
+            </ol>
+          </div>
+
+          <button id="trainBtn" class="btn btn-primary" disabled>Entrenar modelo</button>
+        </article>
+
+        <article id="trainResults" class="card hidden">
+          <h3>Resultados del entrenamiento</h3>
+          <div class="metrics-row" id="trainMetrics"></div>
+          <div class="table-wrap">
+            <table id="coefTable">
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Coeficiente</th>
+                  <th>Odds Ratio</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p id="interceptInfo" class="muted"></p>
+          <canvas id="coefChart" height="120"></canvas>
+        </article>
+      </section>
+
+      <!-- FASE 4 -->
+      <section id="phase-4" class="phase">
+        <header class="phase-header">
+          <span class="phase-tag">Fase 4</span>
+          <h2>Validación y predicción</h2>
+          <p>Cómo evaluar el modelo y usarlo con datos nuevos</p>
+        </header>
+
+        <div id="phase4Empty" class="empty-state">
+          Primero entrena un modelo en la <button class="link-btn" data-phase="3">Fase 3</button>.
+        </div>
+
+        <div id="phase4Content" class="hidden">
+          <p class="intro-text">
+            El modelo se evalúa con datos que <strong>no vio durante el entrenamiento</strong>
+            (conjunto de prueba). Esto permite saber si generaliza bien.
+          </p>
+
+          <div class="metrics-row" id="validationMetrics"></div>
+
+          <div class="grid-2">
+            <article class="card">
+              <h3>Matriz de confusión</h3>
+              <div class="confusion-grid" id="confusionMatrix"></div>
+            </article>
+            <article class="card">
+              <h3>Curva ROC</h3>
+              <canvas id="rocChart" height="220"></canvas>
+            </article>
+          </div>
+
+          <article class="card">
+            <h3>Reporte de clasificación</h3>
+            <pre id="classReport" class="code-block"></pre>
+          </article>
+
+          <article class="card">
+            <h3>Predicción con datos nuevos</h3>
+            <p class="muted">Introduce valores para cada variable y obtén la clase predicha.</p>
+            <form id="predictForm" class="predict-form"></form>
+            <button type="submit" form="predictForm" class="btn btn-primary">Predecir</button>
+            <div id="predictResult" class="predict-result hidden"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
